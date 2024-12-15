@@ -4,7 +4,7 @@ function restricted(req, res, next) {
   const token = req.headers.authorization;
 
   if (!token || !token.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Token required' });
+    return res.status(401).json({ message: 'token required' });
   }
 
   const tokenValue = token.slice(7); 

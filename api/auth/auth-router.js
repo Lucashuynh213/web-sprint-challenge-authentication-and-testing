@@ -20,16 +20,18 @@ router.post('/register', async (req, res) => {
 
     const hashedPassword = bcrypt.hashSync(password, 8);
 
-    const [newUser] = await db('users')
-      .insert({
-        username,
-        password: hashedPassword,
-      })
-      .returning(['id', 'username']);
+    // Insert the new user into the database and return id and username as an array of objects
+    const newUser = await db('users')
+        .insert({
+            username,
+            password: hashedPassword
+            })
+          .returning('*');
 
-    const token = jwt.sign({ username: newUser.username }, process.env.JWT_SECRET || 'shh', { expiresIn: '1h' });
 
-    res.status(201).json({id: newUser.id, username: newUser.username, token });
+        const token = jwt.sign({ username: username }, process.env.JWT_SECRET || 'shh', { expiresIn: '1h' });
+
+    res.status(201).json({ id: newUser[0].id, username: newUser[0].username, token });
   } catch (err) {
     console.error('Error registering user:', err);
     res.status(500).json({ message: 'Error registering user' });
@@ -55,9 +57,9 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'invalid credentials' });
     }
 
-      const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET || 'shh', { expiresIn: '1h' });
+    const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET || 'shh', { expiresIn: '1h' });
 
-      res.status(200).json({ token });
+    res.status(200).json({ message: 'Welcome back!', token });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ message: 'Error logging in' });
