@@ -10,7 +10,6 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  // Clean up users table between tests
   await db('users').truncate();
 });
 

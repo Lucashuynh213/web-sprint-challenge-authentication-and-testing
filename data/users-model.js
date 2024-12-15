@@ -1,17 +1,21 @@
 // users-model.js
-const db = require('../../data/dbConfig'); // Adjust the path if needed
+const db = require('./dbConfig'); // Adjust the path if needed
 
-// Function to insert a new user
-function add(user) {
-  return db('users').insert(user).returning('id', 'username'); // Adjust as per your DB schema
-}
-
-// Function to find a user by username
-function findByUsername(username) {
-  return db('users').where({ username }).first();
-}
-
-module.exports = {
-  add,
-  findByUsername,
-};
+async function add(user) {
+    const [id] = await db('users').insert(user); // Insert returns the id
+    return findById(id); // Fetch the complete user record
+  }
+  
+  function findById(id) {
+    return db('users').where({ id }).first();
+  }
+  
+  function findBy(filter) {
+    return db('users').where(filter).first();
+  }
+  
+  module.exports = {
+    add,
+    findById,
+    findBy,
+  };

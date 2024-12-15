@@ -5,46 +5,47 @@ const express = require('express');
   const jwt = require('jsonwebtoken');
   const db = require('../../data/dbConfig');
   const router = express.Router();
+  const Users = require('../../data/users-model')
 
 // Register route
-router.post('/register', async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res.status(400).json({ message: 'username and password required' });
-  }
-
+router.post('/register', async (req, res, next) => {
   try {
-    const existingUser = await db('users').where({ username }).first();
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ message: 'username and password required' });
+    }
+
+    const existingUser = await Users.findBy({ username });
     if (existingUser) {
       return res.status(400).json({ message: 'username taken' });
     }
 
     const hashedPassword = bcrypt.hashSync(password, 8);
+    const newUser = await Users.add({ username, password: hashedPassword });
 
-    // Insert the new user into the database and return id and username
-    const newUser = await db('users')
-      .insert({
-        username,
-        password: hashedPassword
-      })
-      .returning(["id", 'username']);
+    const token = jwt.sign(
+      { id: newUser.id, username: newUser.username },
+      process.env.JWT_SECRET || 'shh',
+      { expiresIn: '1h' }
+    );
 
-      const token = jwt.sign({ username }, process.env.JWT_SECRET || 'shh', { expiresIn: '1h' });
-
-      res.status(201).json({ id: newUser[0].id, username: newUser[0].username, token });
-    } catch (err) {
-      console.error('Error registering user:', err);
-      res.status(500).json({ message: 'Error registering user' });
-    }
-  });
+    res.status(201).json({
+      id: newUser.id, // Include the id
+      username: newUser.username,
+      token,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Login route
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    return res.status(400).json({ message: 'username and password required' });
+      return res.status(400).json({ message: 'username and password required' });
   }
 
   try {
@@ -60,9 +61,9 @@ router.post('/login', async (req, res) => {
       const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET || 'shh', { expiresIn: '1h' });
       res.status(200).json({ message: 'Welcome back!', token });
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ message: 'Error logging in' });
-  }
-});
+      console.error('Login error:', err);
+      res.status(500).json({ message: 'Error logging in' });
+    }
+  });
 
 module.exports = router;
