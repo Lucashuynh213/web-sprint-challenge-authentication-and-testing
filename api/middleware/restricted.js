@@ -10,7 +10,7 @@ function restricted(req, res, next) {
   jwt.verify(tokenValue, process.env.JWT_SECRET || 'shh', (err, decodedToken) => {
         if (err) {
             console.error('Token invalid:', err);
-            return res.status(401).json({ message: 'Token invalid' });
+            return res.status(401).json({ message: 'token invalid' });
         }
         req.user = decodedToken;
        next();
