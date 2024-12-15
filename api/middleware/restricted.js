@@ -7,12 +7,12 @@ function restricted(req, res, next) {
     return res.status(401).json({ message: 'Token required' });
   }
 
-  const tokenValue = token.slice(7); // Remove 'Bearer ' prefix
+  const tokenValue = token.slice(7); 
 
   jwt.verify(tokenValue, process.env.JWT_SECRET || 'shh', (err, decodedToken) => {
     if (err) {
-      console.error('Token invalid:', err);
-      return res.status(401).json({ message: 'Token invalid' });
+        console.error('Token invalid:', err);
+        return res.status(401).json({ message: 'Token invalid' });
     }
 
     req.user = decodedToken;
