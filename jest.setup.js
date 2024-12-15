@@ -1,4 +1,4 @@
-require('dotenv').config({path: './env.test'}) // Load test env vars
+require('dotenv').config({path: './.env.test'}) // Load test env vars
 beforeAll(async () => {
     // Any setup before tests (e.g., clearing the database or setting environment variables)
   });
