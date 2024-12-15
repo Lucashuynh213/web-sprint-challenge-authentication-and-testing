@@ -3,21 +3,24 @@ const jwt = require('jsonwebtoken');
 function restricted(req, res, next) {
   const token = req.headers.authorization;
 
-  if (!token || !token.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'token required' });
-  }
-
-  const tokenValue = token.slice(7); 
-
-  jwt.verify(tokenValue, process.env.JWT_SECRET || 'shh', (err, decodedToken) => {
-    if (err) {
-        console.error('Token invalid:', err);
-        return res.status(401).json({ message: 'Token invalid' });
+    if (!token || !token.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'token required' });
     }
 
-    req.user = decodedToken;
-    next();
-  });
+  try {
+      const tokenValue = token.slice(7); // Remove 'Bearer ' prefix
+    jwt.verify(tokenValue, process.env.JWT_SECRET || 'shh', (err, decodedToken) => {
+      if (err) {
+        console.error('Token invalid:', err);
+        return res.status(401).json({ message: 'Token invalid' });
+      }
+      req.user = decodedToken;
+        next();
+    });
+    }
+    catch(err) {
+      next(err);
+  }
 }
 
 module.exports = { restricted };

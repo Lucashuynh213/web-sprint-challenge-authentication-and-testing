@@ -1,40 +1,43 @@
+
+// Register route
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const db = require('../../data/dbConfig');
-const router = express.Router();
+  const bcrypt = require('bcryptjs');
+  const jwt = require('jsonwebtoken');
+  const db = require('../../data/dbConfig');
+  const router = express.Router();
 
 // Register route
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-      return res.status(400).json({ message: 'username and password required' });
+    return res.status(400).json({ message: 'username and password required' });
   }
 
   try {
-      const existingUser = await db('users').where({ username }).first();
-      if (existingUser) {
-          return res.status(400).json({ message: 'username taken' });
-      }
+    const existingUser = await db('users').where({ username }).first();
+    if (existingUser) {
+      return res.status(400).json({ message: 'username taken' });
+    }
 
-      const hashedPassword = bcrypt.hashSync(password, 8);
-      console.log('Inserting user with:', { username, password: hashedPassword });  // Log username and password
+    const hashedPassword = bcrypt.hashSync(password, 8);
 
-      const [newUser] = await db('users')
-          .insert({ username, password: hashedPassword })
-          .returning(['id', 'username']);
+    // Insert the new user into the database and return id and username
+    const newUser = await db('users')
+      .insert({
+        username,
+        password: hashedPassword
+      })
+      .returning(["id", 'username']);
 
-      console.log('New User:', newUser);  // Log the result of the insertion
+      const token = jwt.sign({ username }, process.env.JWT_SECRET || 'shh', { expiresIn: '1h' });
 
-      const token = jwt.sign({ username: newUser.username }, process.env.JWT_SECRET || 'shh', { expiresIn: '1h' });
-
-      res.status(201).json({ id: newUser.id, username: newUser.username, token });
-  } catch (err) {
+      res.status(201).json({ id: newUser[0].id, username: newUser[0].username, token });
+    } catch (err) {
       console.error('Error registering user:', err);
       res.status(500).json({ message: 'Error registering user' });
-  }
-});
+    }
+  });
 
 // Login route
 router.post('/login', async (req, res) => {
