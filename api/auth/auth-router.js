@@ -7,6 +7,8 @@ const express = require('express');
   const router = express.Router();
   const Users = require('../../data/users-model')
 
+  
+
 // Register route
 router.post('/register', async (req, res, next) => {
   try {
@@ -31,8 +33,9 @@ router.post('/register', async (req, res, next) => {
     );
 
     res.status(201).json({
-      id: newUser.id, // Include the id
+      id: newUser.id,
       username: newUser.username,
+      password: hashedPassword, // Include the hashed password
       token,
     });
   } catch (err) {

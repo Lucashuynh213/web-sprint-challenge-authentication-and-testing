@@ -7,13 +7,14 @@ function restricted(req, res, next) {
     return res.status(401).json({ message: 'token required' });
   }
 
-  if (!authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'token invalid' });
-  }
+  // Extract token value (with or without "Bearer ")
+  const token = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7) // Remove "Bearer "
+    : authHeader;
 
-  const token = authHeader.slice(7); // Remove "Bearer "
   jwt.verify(token, process.env.JWT_SECRET || 'shh', (err, decodedToken) => {
     if (err) {
+      console.error('Token invalid:', err);
       return res.status(401).json({ message: 'token invalid' });
     }
     req.user = decodedToken;
