@@ -3,15 +3,19 @@ const jwt = require('jsonwebtoken');
 function restricted(req, res, next) {
   const token = req.headers.authorization;
 
-  if (!token) {
+  if (!token || !token.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Token required' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+  const tokenValue = token.slice(7); // Remove 'Bearer ' prefix
+
+  jwt.verify(tokenValue, process.env.JWT_SECRET || 'shh', (err, decodedToken) => {
     if (err) {
+      console.error('Token invalid:', err);
       return res.status(401).json({ message: 'Token invalid' });
     }
-    req.user = decoded;  // Attach user to request object
+
+    req.user = decodedToken;
     next();
   });
 }
